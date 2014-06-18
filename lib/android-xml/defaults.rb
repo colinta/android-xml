@@ -22,7 +22,7 @@ module AndroidXml
       end
 
       # remove the 'android:' prefix
-      tag :string, :style, :item, :color do
+      tag :string, :style, :item, :color, :array do
         rename :name
       end
       tag :style do

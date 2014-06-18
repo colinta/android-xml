@@ -112,4 +112,11 @@ module AndroidXml
     tags[@context][:defaults].merge!(attrs)
   end
 
+  def method_missing(method_name, filename, &block)
+    xml_file = file(filename) do
+      send(method_name, &block)
+    end
+    xml_file
+  end
+
 end

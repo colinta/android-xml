@@ -34,7 +34,7 @@ module AndroidXml
       File.open(self.filename, 'w') do |f|
         f.write(self.to_s)
       end
-      puts "✓ #{self.filename}"
+      puts "\033[32m✓\033[0m #{self.filename}"
     end
 
   end

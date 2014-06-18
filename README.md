@@ -113,6 +113,27 @@ AndroidXml.setup do
 end
 ```
 
+# Rakefile
+
+```ruby
+require 'rake'
+require 'android-xml'
+# require 'bundler'
+# Bundler.require
+
+
+task :default => :generate
+
+desc 'Generate XML files'
+task :generate do
+  Dir.glob('generate/*.rb') do |file_name|
+    require_relative file_name
+  end
+
+  AndroidXml.write_all
+end
+```
+
 # Errata
 
 ```ruby

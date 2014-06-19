@@ -66,7 +66,7 @@ module AndroidXml
   # create a file or a new tag.
   def method_missing(method_name, filename_or_attrs=nil, &block)
     if filename_or_attrs.is_a?(String) || filename_or_attrs.is_a?(Symbol)
-      xml_file = file(filename) do
+      xml_file = file(filename_or_attrs) do
         send(method_name, &block)
       end
       xml_file

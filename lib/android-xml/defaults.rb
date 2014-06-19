@@ -14,6 +14,7 @@ module AndroidXml
       all do
         # suppress 'android:' prefix to all style attributes
         rename :style
+        rename context: 'tools:context'
       end
 
       # disable the xmlns attribute on the resource node

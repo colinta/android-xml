@@ -3,46 +3,51 @@ module AndroidXml
   class Tag
     attr_accessor :is_root
 
-    def initialize(tag, *args, &block)
+    def initialize(tag, attrs={}, &block)
       @buffer = []
-      @attrs = {}
+      @attrs = {}.merge(attrs)
       @raw_tag = tag.to_s
-      @text = nil
 
-      if rename = AndroidXml.tags[tag.to_s][:rename]
+      if rename = Setup.tags[tag.to_s][:rename]
         @tag = rename
       else
         @tag = tag.to_s.gsub('_', '-')
       end
 
-      args.each do |arg|
-        if arg.is_a?(Hash)
-          @attrs.merge!(arg)
-        elsif arg.is_a?(String)
-          @text = arg
-        else
-          raise ArgumentError.new("Unknown argument #{arg.inspect} in #{self.class}#new")
-        end
-      end
-
       @generate = block
     end
 
-    def method_missing(method_name, *args, &block)
-      tag = Tag.new(method_name, *args, &block)
-      @buffer << tag
+    def method_missing(method_name, attrs={}, &block)
+      tag = Tag.new(method_name, attrs, &block)
+      include tag
       tag
+    end
+
+    def clone(attrs={}, &block)
+      block ||= @generate
+      Tag.new(@tag, @attrs.merge(attrs), &block)
+    end
+
+    def include(tag, &block)
+      if tag.is_a?(Tag)
+        if block_given?
+          tag = tag.clone(&block)
+        end
+        @buffer << tag
+      else
+        super
+      end
     end
 
     def attrs(whitespace)
       attrs = {}
 
-      attrs.merge!(AndroidXml.all_tag[:defaults])
+      attrs.merge!(Setup.all_tag[:defaults])
       if is_root
-        attrs.merge!(AndroidXml.root_tag[:defaults])
+        attrs.merge!(Setup.root_tag[:defaults])
       end
 
-      attrs.merge!(AndroidXml.tags[@raw_tag][:defaults])
+      attrs.merge!(Setup.tags[@raw_tag][:defaults])
       attrs.merge!(@attrs)
 
       output = ''
@@ -52,10 +57,10 @@ module AndroidXml
 
         key = key.to_s
 
-        if AndroidXml.tags[@tag][:attrs].key?(key)
-          xml_key = AndroidXml.tags[@tag][:attrs][key]
-        elsif AndroidXml.all_tag[:attrs].key?(key)
-          xml_key = AndroidXml.all_tag[:attrs][key]
+        if Setup.tags[@tag][:attrs].key?(key)
+          xml_key = Setup.tags[@tag][:attrs][key]
+        elsif Setup.all_tag[:attrs].key?(key)
+          xml_key = Setup.all_tag[:attrs][key]
         elsif key.to_s.include?(':')
           xml_key = key.to_s
         else
@@ -76,7 +81,7 @@ module AndroidXml
       whitespace = "#{tab}  #{' ' * @tag.length}"
       output = "#{tab}<#{@tag}#{attrs(whitespace)}"
       if @generate
-        inside = generate_block(tab + AndroidXml.tab)
+        inside = generate_block(tab + Setup.tab)
         if !inside || inside.strip.empty?
           output << " />\n"
         else

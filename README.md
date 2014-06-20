@@ -83,7 +83,7 @@ AndroidXml.write_all
 AndroidXml.clean_up 'res/'
 ```
 
-# Helpers
+# Setup / Helpers
 
 Here's how we create the main_action helper, or if you need to specify that some
 attributes don't need the `android:` prefix.
@@ -129,14 +129,16 @@ often have big chunks that are reusable.  Let's say you have a button that is
 in a FrameLayout, and centered at the bottom:
 
 ```ruby
+# create a <Button> tag
 close_button = AndroidXml.Button(
+  id: '@+id/close_button',
   layout_width: 'wrap_content',
   layout_height: 'wrap_content',
-  id: '@+id/cheat_button',
   layout_gravity: 'bottom|center',
-  text: '@string/cheat_button'
+  text: '@string/close_button'
   )
 
+# and include it in a layout
 AndroidXml.file('res/layout/some_activity.xml') do
   RelativeLayout(...) do
     # ...
@@ -145,8 +147,6 @@ AndroidXml.file('res/layout/some_activity.xml') do
 end
 ```
 
-Note: so far, this could also be accomplished using a [Helper](#helpers):
-
 You can `clone` a tag and make changes to it:
 
 ```ruby
@@ -154,7 +154,57 @@ AndroidXml.file('res/layout-land/some_activity.xml') do
   RelativeLayout(...) do
     # ...
 
-    include close_button(padding: '')
+    include close_button(padding: 8.dp)
+  end
+end
+```
+
+You can create a tag with sub nodes, too!
+
+```ruby
+warning = AndroidXml.LinearLayout(
+  layout_width: 'match_parent',
+  layout_height: 'match_parent',
+  orientation: 'horizontal'
+  ) do
+  Image(padding: 24.dp, src: '@drawable/warning_icon')
+  TextView(layout_width: 'wrap_content',
+    layout_height: 'wrap_content',
+    text: '@string/warning_text')
+end
+
+AndroidXml.file('layout.xml') do
+  LinearLayout layout_width: 'match_parent',
+    layout_height: 'match_parent',
+    gravity: 'center',
+    orientation: 'vertical' do
+      include warning
+
+      # if you want to replace the contents:
+      include warning.clone do
+        Image(padding: 24.dp, src: '@drawable/error_icon')
+        TextView(layout_width: 'wrap_content',
+          layout_height: 'wrap_content',
+          text: '@string/error_text')
+      end
+  end
+end
+```
+
+Note: this could also be accomplished using `AndroidXml.setup`, but setup is
+meant for global conventions.  Layout-specific things should be included with
+`include`, in my opinion.  But, up to you:
+
+```ruby
+AndroidXml.setup do
+  tag :close_button => 'Button' do
+    defaults id: '@+id/close_button',
+      layout_width: 'wrap_content',
+      layout_height: 'wrap_content',
+      layout_gravity: 'bottom|center',
+      text: '@string/close_button'
+    contents do
+    end
   end
 end
 ```

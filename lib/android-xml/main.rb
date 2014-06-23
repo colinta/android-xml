@@ -56,6 +56,8 @@ module AndroidXml
     Setup.reset
     @files = nil
     @generated = nil
+    Tag.found_strings.clear
+    Tag.registered_strings.clear
   end
 
   def tag(tag_name, attrs=nil, &block)

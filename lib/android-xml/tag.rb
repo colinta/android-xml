@@ -67,6 +67,10 @@ module AndroidXml
           xml_key = "android:#{key}"
         end
 
+        if xml_key =~ /^@string\/(\w+)$/
+          Tag.found_strings << $1
+        end
+
         if is_first
           output << " #{xml_key}=\"#{value}\""
           is_first = false

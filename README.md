@@ -17,6 +17,7 @@ end
 
 AndroidXml.write_all
 AndroidXml.clean_up 'res/'
+AndroidXml.missing_strings?
 ```
 
     > ruby generate_xml.rb
@@ -81,6 +82,9 @@ end
 # strings.
 AndroidXml.write_all
 AndroidXml.clean_up 'res/'
+# Outputs any missing string tags (looks for @string/name attributes and
+# <string name="name"> tags)
+AndroidXml.missing_strings?
 ```
 
 # Setup / Helpers

@@ -5,7 +5,7 @@ module AndroidXml
 
     def initialize(tag, attrs={}, &block)
       @buffer = []
-      @attrs = {}.merge(attrs)
+      @attrs = {}.merge(flatten_attrs(attrs))
       @raw_tag = tag.to_s
 
       if rename = Setup.tags[tag.to_s][:rename]
@@ -25,7 +25,7 @@ module AndroidXml
 
     def clone(attrs={}, &block)
       block ||= @generate
-      Tag.new(@tag, @attrs.merge(attrs), &block)
+      Tag.new(@tag, @attrs.merge(flatten_attrs(attrs)), &block)
     end
 
     def include(tag, &block)
@@ -39,7 +39,21 @@ module AndroidXml
       end
     end
 
-    def attrs(whitespace)
+    def flatten_attrs(attrs, prefix='')
+      flattened = {}
+      attrs.each do |key, value|
+        key = "#{prefix}#{key}"
+        if value.is_a?(Hash)
+          flattened.merge!(flatten_attrs(value, "#{key}_"))
+        else
+          flattened[key] = value
+        end
+      end
+
+      flattened
+    end
+
+    def generate_attrs(whitespace)
       attrs = {}
 
       attrs.merge!(Setup.all_tag[:defaults])
@@ -53,10 +67,13 @@ module AndroidXml
       format_attrs(@tag, attrs, whitespace)
     end
 
-    def format_attrs(tag, attrs, whitespace, is_first=true)
+    def format_attrs(tag, attrs, whitespace)
       output = ''
+      is_first = true
       attrs.each do |key, value|
-        next if value.nil?
+        if value.nil?
+          next
+        end
 
         key = key.to_s
 
@@ -102,7 +119,7 @@ module AndroidXml
 
     def generate(tab='')
       whitespace = "#{tab}  #{' ' * @tag.length}"
-      output = "#{tab}<#{@tag}#{attrs(whitespace)}"
+      output = "#{tab}<#{@tag}#{generate_attrs(whitespace)}"
       if @generate
         inside = generate_block(tab + Setup.tab)
         if !inside || inside.strip.empty?

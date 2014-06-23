@@ -67,7 +67,7 @@ module AndroidXml
           xml_key = "android:#{key}"
         end
 
-        if xml_key =~ /^@string\/(\w+)$/
+        if value =~ /^@string\/(\w+)$/
           Tag.found_strings << $1
         end
 

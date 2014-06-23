@@ -31,8 +31,12 @@ module AndroidXml
   module_function
 
   def missing_strings?
-    p registered: Tag.registered_strings
-    p found: Tag.found_strings
+    diff = Tag.found_strings - Tag.registered_strings
+    unless diff.empty?
+      diff.each do |name|
+        puts "  string(name='#{name}') { '#{name}' }"
+      end
+    end
   end
 
 end

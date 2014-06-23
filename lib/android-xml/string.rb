@@ -26,6 +26,30 @@ module AndroidXml
       tag
     end
 
+    def run_block(&block)
+      text = instance_exec(&block)
+      if text.is_a?(String)
+        text = Tag.format_string(text)
+      end
+      text
+    end
+
+    # isn't there a method that does this for me!?
+    def self.format_string(text)
+      text = text.dup
+      {
+        '\\' => '\\\\',
+        "\n" => '\n',
+        "\t" => '\t',
+        "\b" => '\b',
+        '"' => '\"',
+        "'" => "\\\\'",
+      }.each do |find, replace|
+        text.gsub!(find, replace)
+      end
+      text
+    end
+
   end
 
   module_function
@@ -34,7 +58,7 @@ module AndroidXml
     diff = Tag.found_strings - Tag.registered_strings
     unless diff.empty?
       diff.each do |name|
-        puts "  string(name='#{name}') { '#{name}' }"
+        puts "  string(name='#{Tag.format_string(name)}') { '#{Tag.format_string(name)}' }"
       end
     end
   end

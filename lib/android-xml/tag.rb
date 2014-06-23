@@ -50,15 +50,18 @@ module AndroidXml
       attrs.merge!(Setup.tags[@raw_tag][:defaults])
       attrs.merge!(@attrs)
 
+      format_attrs(@tag, attrs, whitespace)
+    end
+
+    def format_attrs(tag, attrs, whitespace, is_first=true)
       output = ''
-      is_first = true
       attrs.each do |key, value|
         next if value.nil?
 
         key = key.to_s
 
-        if Setup.tags[@tag][:attrs].key?(key)
-          xml_key = Setup.tags[@tag][:attrs][key]
+        if Setup.tags[tag][:attrs].key?(key)
+          xml_key = Setup.tags[tag][:attrs][key]
         elsif Setup.all_tag[:attrs].key?(key)
           xml_key = Setup.all_tag[:attrs][key]
         elsif key.to_s.include?(':')
@@ -71,14 +74,30 @@ module AndroidXml
           Tag.found_strings << $1
         end
 
+        quoted_value = Tag.quote_attr_value(value)
         if is_first
-          output << " #{xml_key}=\"#{value}\""
+          output << " #{xml_key}=\"#{quoted_value}\""
           is_first = false
         else
-          output << "\n#{whitespace}#{xml_key}=\"#{value}\""
+          output << "\n#{whitespace}#{xml_key}=\"#{quoted_value}\""
         end
       end
+
       output
+    end
+
+    def self.quote_attr_value(value)
+      value = value.to_s.dup
+      {
+        '&' => '&amp;',
+        '\'' => '&apos;',
+        '"' => '&quot;',
+        '<' => '&lt;',
+        '>' => '&gt;',
+      }.each do |find, replace|
+        value.gsub!(find, replace)
+      end
+      value
     end
 
     def generate(tab='')
@@ -108,7 +127,7 @@ module AndroidXml
 
       output = ''
       if @generate
-        text = instance_exec(&@generate)
+        text = run_block(&@generate)
         @buffer.each do |tag|
           output << tag.generate(tab)
         end
@@ -122,6 +141,10 @@ module AndroidXml
       end
 
       @block_output = output
+    end
+
+    def run_block(&block)
+      instance_exec(&block)
     end
 
     def to_s

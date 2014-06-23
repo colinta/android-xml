@@ -26,6 +26,9 @@ module AndroidXml
       tag :string, :style, :item, :color, :array do
         rename :name
       end
+      tag :item do
+        rename :type
+      end
       tag :style do
         rename :parent
       end

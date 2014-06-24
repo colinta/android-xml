@@ -3,43 +3,7 @@ module AndroidXml
   class Tag
     attr_accessor :is_root
 
-    def initialize(tag, attrs={}, &block)
-      @buffer = []
-      @attrs = {}.merge(flatten_attrs(attrs))
-      @raw_tag = tag.to_s
-
-      if rename = Setup.tags[tag.to_s][:rename]
-        @tag = rename
-      else
-        @tag = tag.to_s.gsub('_', '-')
-      end
-
-      @generate = block
-    end
-
-    def method_missing(method_name, attrs={}, &block)
-      tag = Tag.new(method_name, attrs, &block)
-      include tag
-      tag
-    end
-
-    def clone(attrs={}, &block)
-      block ||= @generate
-      Tag.new(@tag, @attrs.merge(flatten_attrs(attrs)), &block)
-    end
-
-    def include(tag, &block)
-      if tag.is_a?(Tag)
-        if block_given?
-          tag = tag.clone(&block)
-        end
-        @buffer << tag
-      else
-        super
-      end
-    end
-
-    def flatten_attrs(attrs, prefix='')
+    def self.flatten_attrs(attrs, prefix='')
       flattened = {}
       attrs.each do |key, value|
         key = "#{prefix}#{key}"
@@ -53,21 +17,7 @@ module AndroidXml
       flattened
     end
 
-    def generate_attrs(whitespace)
-      attrs = {}
-
-      attrs.merge!(Setup.all_tag[:defaults])
-      if is_root
-        attrs.merge!(Setup.root_tag[:defaults])
-      end
-
-      attrs.merge!(Setup.tags[@raw_tag][:defaults])
-      attrs.merge!(@attrs)
-
-      format_attrs(@tag, attrs, whitespace)
-    end
-
-    def format_attrs(tag, attrs, whitespace)
+    def self.format_attrs(tag, attrs, whitespace)
       output = ''
       is_first = true
       attrs.each do |key, value|
@@ -115,6 +65,56 @@ module AndroidXml
         value.gsub!(find, replace)
       end
       value
+    end
+
+    def initialize(tag, attrs={}, &block)
+      @buffer = []
+      @attrs = {}.merge(Tag.flatten_attrs(attrs))
+      @raw_tag = tag.to_s
+
+      if rename = Setup.tags[tag.to_s][:rename]
+        @tag = rename
+      else
+        @tag = tag.to_s.gsub('_', '-')
+      end
+
+      @generate = block
+    end
+
+    def method_missing(method_name, attrs={}, &block)
+      tag = Tag.new(method_name, attrs, &block)
+      include tag
+      tag
+    end
+
+    def clone(attrs={}, &block)
+      block ||= @generate
+      Tag.new(@tag, @attrs.merge(Tag.flatten_attrs(attrs)), &block)
+    end
+
+    def include(tag, &block)
+      if tag.is_a?(Tag)
+        if block_given?
+          tag = tag.clone(&block)
+        end
+        @buffer << tag
+      else
+        super
+      end
+    end
+
+    def generate_attrs(whitespace)
+      attrs = {}
+
+      attrs.merge!(Setup.all_tag[:defaults])
+      if is_root
+        attrs.merge!(Setup.root_tag[:defaults])
+      end
+
+      attrs.merge!(Setup.tags[@raw_tag][:defaults])
+      attrs.merge!(@attrs)
+
+      Tag.format_attrs(@tag, attrs, whitespace)
     end
 
     def generate(tab='')

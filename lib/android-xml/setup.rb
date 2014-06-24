@@ -81,7 +81,7 @@ module AndroidXml
       end
 
       def defaults(attrs)
-        tags[@context][:defaults].merge!(attrs)
+        tags[@context][:defaults].merge!(Tag.flatten_attrs(attrs))
       end
 
     end

@@ -7,7 +7,6 @@ module AndroidXml
 
     if folder
       xml_location = File.join(Dir.getwd, folder, '**/*.rb')
-      p xml_location
       Dir.glob(xml_location) do |file_name|
         require_relative file_name
       end

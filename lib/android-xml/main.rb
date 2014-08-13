@@ -1,6 +1,25 @@
 module AndroidXml
   module_function
 
+  def run(opts={})
+    folder = opts[:in]
+    clean_up = opts.fetch(:clean_up, true)
+
+    if folder
+      xml_location = File.join(Dir.getwd, folder, '**/*.rb')
+      p xml_location
+      Dir.glob(xml_location) do |file_name|
+        require_relative file_name
+      end
+    end
+
+    AndroidXml.write_all
+    if clean_up
+      AndroidXml.clean_up('res/')
+    end
+    AndroidXml.missing_strings?
+  end
+
   def file(filename, &block)
     XmlFile.new(filename, &block)
   end

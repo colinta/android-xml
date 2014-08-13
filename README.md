@@ -15,9 +15,7 @@ AndroidXml.file('res/values/strings.xml') do
   end
 end
 
-AndroidXml.write_all
-AndroidXml.clean_up 'res/'
-AndroidXml.missing_strings?
+AndroidXml.run
 ```
 
     > ruby generate_xml.rb
@@ -85,6 +83,8 @@ AndroidXml.clean_up 'res/'
 # Outputs any missing string tags (looks for @string/name attributes and
 # <string name="name"> tags)
 AndroidXml.missing_strings?
+
+# Calling AndroidXml.run will call write_all, clean_up, and missing_strings?
 ```
 
 # Setup / Helpers
@@ -229,12 +229,9 @@ task :default => :generate
 
 desc 'Generate XML files'
 task :generate do
-  Dir.glob('android-xml/*.rb') do |file_name|
-    require_relative file_name
-  end
-
-  AndroidXml.write_all
-  AndroidXml.clean_up 'res/'
+  # the :in option can point to a folder of AndroidXml files (subdirectories
+  # are included)
+  AndroidXml.run(in: 'android-xml')
 end
 ```
 

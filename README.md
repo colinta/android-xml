@@ -215,6 +215,9 @@ end
 
 # Rakefile to build the XML files
 
+Generates all files that are in the `./android-xml` folder.
+
+###### Rakefile
 ```ruby
 require 'rake'
 require 'android-xml'
@@ -226,7 +229,7 @@ task :default => :generate
 
 desc 'Generate XML files'
 task :generate do
-  Dir.glob('generate/*.rb') do |file_name|
+  Dir.glob('android-xml/*.rb') do |file_name|
     require_relative file_name
   end
 
